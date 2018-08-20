@@ -42,8 +42,8 @@
 #include "util.h"
 #include "cpusvn_util.h"
 #include "rts_sim.h"
+#include "chrono"
 #include <assert.h>
-#include <time.h>
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -207,6 +207,7 @@ int EnclaveCreatorSim::destroy_enclave(sgx_enclave_id_t enclave_id, uint64_t enc
 
 int EnclaveCreatorSim::initialize(sgx_enclave_id_t enclave_id)
 {
+    using namespace std::chrono;
     CEnclave *enclave = CEnclavePool::instance()->get_enclave(enclave_id);
 
     if(enclave == NULL)
@@ -229,7 +230,8 @@ int EnclaveCreatorSim::initialize(sgx_enclave_id_t enclave_id)
     assert(global_data_sim_ptr != NULL);
 
     // Initialize the `seed' to `g_global_data_sim'.
-    global_data_sim_ptr->seed = (uint64_t)time(NULL);
+    high_resolution_clock::time_point t = high_resolution_clock::now();
+    global_data_sim_ptr->seed = (uint64_t)duration_cast<nanoseconds>(t.time_since_epoch()).count();
 
     global_data_sim_ptr->secs_ptr = ce->get_secs();
     sgx_cpu_svn_t temp_cpusvn = {{0}};
